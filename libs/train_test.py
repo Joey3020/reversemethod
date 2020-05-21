@@ -10,10 +10,9 @@ import pandas
 from pandas import DataFrame
 import time
 #train the model
-def train(net, trainloader, valloader, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_SIZE, MODEL_NAME, patience, validate_every, device):
+def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_SIZE, MODEL_NAME, patience, validate_every, device):
     
     optimizer = optim.Adam(net.parameters(), LEARNING_RATE, betas=(0.9, 0.999), eps=1e-09, weight_decay=0, amsgrad=False)
-    weight = torch.tensor([2.0, 2.0, 1.5, 1.0])
 
     train_losses = []
     val_losses = []
@@ -34,14 +33,13 @@ def train(net, trainloader, valloader, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_
                     x = x.to(device)
                     y = y.to(device)
 
-                    la = y[:, 0]
-                    lb = y[:, 1]
-                    ld = y[:, 2]
-                    lt = y[:, 3]
+                    d = y[:, 2]
+                    A = y[:, 3]
+                    B = y[:, 4]
 
-                    a, b, d, t = net(x)
+                    A_, B_, d_ = net(x)
                     
-                    loss = weighted_MSE(a, b, d, t, la, lb, ld, lt, weight, device)
+                    loss = WMSE2(A_, B_, d_, A, B, d, weight, device)
                     net.zero_grad()
                     loss.backward()
                     optimizer.step()
@@ -57,13 +55,13 @@ def train(net, trainloader, valloader, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_
                     x = x.to(device)
                     y = y.to(device)
 
-                    la = y[:, 0]
-                    lb = y[:, 1]
-                    ld = y[:, 2]
-                    lt = y[:, 3]
+                    d = y[:, 2]
+                    A = y[:, 3]
+                    B = y[:, 4]
 
-                    a, b, d, t = net(x)
-                    loss = weighted_MSE(a, b, d, t, la, lb, ld, lt, weight, device)
+                    A_, B_, d_ = net(x)
+                    
+                    loss = WMSE2(A_, B_, d_, A, B, d, weight, device)
                     val_losses.append(loss.item())
 
                 train_loss = np.average(train_losses)
@@ -102,10 +100,9 @@ def test(net, testloader, IMG_CHANNELS, IMG_SIZE, OUTPUT_LABEL_SIZE, device):
             x = x.to(device)
             y = y.to(device)
             
-            a, b, d, t = net(x)
+            A, B, d = net(x)
 
-
-            final_result = torch.cat([a, b, d, t], dim = 1)
+            final_result = torch.cat([A, B, d], dim = 1)
             final_result = final_result.to("cpu")
           
             predictions.append(final_result.numpy())

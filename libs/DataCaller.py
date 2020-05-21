@@ -13,7 +13,7 @@ class DataCaller(Dataset):
         self.input_size = input_size
         self.label_size = label_size
 
-        self.data = np.array(pd.read_csv(self.data_path), dtype=np.float)
+        self.data = np.array(pd.read_csv(self.data_path, header=None), dtype=np.float)
 
         self.X = torch.from_numpy(self.data[:, : -self.label_size ]).float()
         self.Y = torch.from_numpy(self.data[:, -self.label_size : ]).float()
