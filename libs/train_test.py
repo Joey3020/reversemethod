@@ -1,7 +1,7 @@
 
 from EarlyStopper import *
 from utils import *
-
+import neptune
 import torch
 import torch.optim as optim
 from tqdm import trange
@@ -36,10 +36,11 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                     d = y[:, 2]
                     A = y[:, 3]
                     B = y[:, 4]
+                    t = y[:, 5]
 
-                    A_, B_, d_ = net(x)
+                    A_, B_, d_, t_ = net(x)
                     
-                    loss = WMSE2(A_, B_, d_, A, B, d, weight, device)
+                    loss = WMSE3(A_, B_, d_, t_, A, B, d, t, weight, device)
                     net.zero_grad()
                     loss.backward()
                     optimizer.step()
@@ -58,21 +59,22 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                     d = y[:, 2]
                     A = y[:, 3]
                     B = y[:, 4]
+                    t = y[:, 5]
 
-                    A_, B_, d_ = net(x)
+                    A_, B_, d_, t_ = net(x)
                     
-                    loss = WMSE2(A_, B_, d_, A, B, d, weight, device)
+                    loss = WMSE3(A_, B_, d_, t_, A, B, d, t, weight, device)
                     val_losses.append(loss.item())
 
                 train_loss = np.average(train_losses)
                 valid_loss = np.average(val_losses)
                 avg_train_losses.append(train_loss)
                 avg_val_losses.append(valid_loss)
-                
-
                 train_losses = []
                 val_losses = []
 
+                neptune.log_metric('train loss', train_loss)
+                neptune.log_metric('validation loss', valid_loss)
 
                 f.write(f"{MODEL_NAME},{round(time.time(), 3)},  {round(float(train_loss), 4)},  {round(float(valid_loss),4)}\n")
                 print("\nloss : ", train_loss, "val loss : ", valid_loss, "\n")
@@ -82,8 +84,10 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                 if early_stopping.early_stop:
                     print("Early stopping")
                     break
-        net.load_state_dict(torch.load('checkpoint.pt'))
         
+        net.load_state_dict(torch.load('checkpoint.pt'))
+        neptune.log_artifact('checkpoint.pt')
+
     return avg_train_losses, avg_val_losses
 
 def test(net, testloader, IMG_CHANNELS, IMG_SIZE, OUTPUT_LABEL_SIZE, device):
@@ -100,9 +104,9 @@ def test(net, testloader, IMG_CHANNELS, IMG_SIZE, OUTPUT_LABEL_SIZE, device):
             x = x.to(device)
             y = y.to(device)
             
-            A, B, d = net(x)
+            A, B, d, t = net(x)
 
-            final_result = torch.cat([A, B, d], dim = 1)
+            final_result = torch.cat([A, B, d, t], dim = 1)
             final_result = final_result.to("cpu")
           
             predictions.append(final_result.numpy())
@@ -113,3 +117,4 @@ def test(net, testloader, IMG_CHANNELS, IMG_SIZE, OUTPUT_LABEL_SIZE, device):
     predictions = predictions.reshape(-1, OUTPUT_LABEL_SIZE)
     df = DataFrame(predictions)
     df.to_excel('predictions.xlsx', header=None, index=None)
+    neptune.log_artifact('predictions.xlsx')
