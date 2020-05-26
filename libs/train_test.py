@@ -38,10 +38,10 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                     B = y[:, 4]
                     t = y[:, 5]
 
-                    A_, B_, d_, t_ = net(x)
+                    AA_, BB_, d_, t_ = net(x)
                     
-                    loss = WMSE3(A_, B_, d_, t_, A, B, d, t, weight, device)
-                    net.zero_grad()
+                    loss = wmse4(AA_, BB_, d_, t_, A, B, d, t, 1.3, weight, device)
+                    optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
                     train_losses.append(loss.item())
@@ -61,9 +61,9 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                     B = y[:, 4]
                     t = y[:, 5]
 
-                    A_, B_, d_, t_ = net(x)
+                    AA_, BB_, d_, t_ = net(x)
                     
-                    loss = WMSE3(A_, B_, d_, t_, A, B, d, t, weight, device)
+                    loss = wmse4(AA_, BB_, d_, t_, A, B, d, t, 1.3, weight, device)
                     val_losses.append(loss.item())
 
                 train_loss = np.average(train_losses)

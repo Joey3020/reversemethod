@@ -57,11 +57,11 @@ class Net(nn.Module):
 
 		feature = feature.view(feature.size(0), -1)
 
-		output1 = self.fccAB(feature)		
-		output2 = self.fccdt(feature)
+		output1 = self.fccAB(feature)
+		a = output1[:,:1]
+		b = output1[:,1:2]
 
-		a = output1[:, :1]
-		b = output1[:, 1:2]
+		output2 = self.fccdt(feature)
 		d = output2[:, :1]
 		t = output2[:, 1:2]
 
