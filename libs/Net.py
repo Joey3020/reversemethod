@@ -13,42 +13,42 @@ class Net(nn.Module):
 			nn.Conv2d(self.INPUT_CHANNELS, 8, kernel_size=3, padding=1),
 			nn.ReLU(),
 			nn.MaxPool2d(2, 2),
-			#32, 32, 12
+			#32, 32, 8
 			
 			nn.Conv2d(8, 12, kernel_size=3, padding=1),
 			nn.ReLU(),
 			nn.MaxPool2d(2, 2),
-			#16, 16, 16
+			#16, 16, 12
 			
 			nn.Conv2d(12, 16, kernel_size=3, padding=1),
 			nn.ReLU(),
 			nn.MaxPool2d(2, 2),
-			#8, 8, 32
+			#8, 8, 16
 			
 			nn.Conv2d(16, 20, kernel_size=3, padding=1),
 			nn.ReLU(),
 			nn.MaxPool2d(2, 2),
-			#4, 4, 48
+			#4, 4, 20
 			
 			nn.Conv2d(20, 24, kernel_size=3, padding=1),
 			nn.ReLU(),
 			nn.MaxPool2d(2, 2)
-			#2, 2, 60
+			#2, 2, 24
 		)
 		self.fccAB = nn.Sequential(
 			nn.Linear(96, 32),
 			nn.ReLU(),
-			nn.Linear(32, 5),
+			nn.Linear(32, 10),
 			nn.ReLU(),
-			nn.Linear(5, self.OUTPUT1)
+			nn.Linear(10, self.OUTPUT1)
 		)
 
 		self.fccdt = nn.Sequential(
 			nn.Linear(96, 32),
 			nn.ReLU(),
-			nn.Linear(32, 5),
+			nn.Linear(32, 10),
 			nn.ReLU(),
-			nn.Linear(5, self.OUTPUT2)
+			nn.Linear(10, self.OUTPUT2)
 		)
 
 	def forward(self, x):
@@ -58,11 +58,11 @@ class Net(nn.Module):
 		feature = feature.view(feature.size(0), -1)
 
 		output1 = self.fccAB(feature)
-		a = output1[:,:1]
-		b = output1[:,1:2]
+		A = output1[:,:1]
+		B = output1[:,1:2]
 
 		output2 = self.fccdt(feature)
 		d = output2[:, :1]
 		t = output2[:, 1:2]
 
-		return a, b, d, t
+		return d, A, B, t

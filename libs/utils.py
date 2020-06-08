@@ -15,50 +15,26 @@ def weighted_mse(input, target, weight, device):
   weight = weight.to(device)
   return torch.sum(weight * (input - target)**2)
 
-def wmse4(a_, b_, d_, t_, a, b, d, t, ratio, weight, device):
-  a = a.to(device)
-  b = b.to(device)
-  d = d.to(device)
-  t = t.to(device)
-  a_ = a_.to(device)
-  b_ = b_.to(device)
-  d_ = d_.to(device)
-  t_ = t_.to(device)
-
+def WMSE4(a_, b_, d_, t_, a, b, d, t, ratio, weight, device):
+  a, b, d, t = a.to(device), b.to(device), d.to(device), t.to(device)
+  a_, b_, d_, t_ = a_.to(device), b_.to(device), d_.to(device), t_.to(device)
   weight = weight.to(device)
 
-  a_ = a_.squeeze()
-  b_ = b_.squeeze()
-  d_ = d_.squeeze()
-  t_ = t_.squeeze()
+  a_, b_, d_, t_ = a_.squeeze(), b_.squeeze, d_.squeeze(), t_.squeeze()
 
   loss_fn = nn.MSELoss()
-
   loss = weight[0] * loss_fn(ratio * a, a_) + weight[1] * loss_fn(ratio * b, b_) + weight[2] * loss_fn(d, d_) + weight[3] * loss_fn(t, t_)
-  
   return loss
 
 def WMSE3(a_, b_, d_, t_, a, b, d, t, weight, device):
-  a = a.to(device)
-  b = b.to(device)
-  d = d.to(device)
-  t = t.to(device)
-  a_ = a_.to(device)
-  b_ = b_.to(device)
-  d_ = d_.to(device)
-  t_ = t_.to(device)
-
+  a, b, d, t = a.to(device), b.to(device), d.to(device), t.to(device)
+  a_, b_, d_, t_ = a_.to(device), b_.to(device), d_.to(device), t_.to(device)
   weight = weight.to(device)
 
-  a_ = a_.squeeze()
-  b_ = b_.squeeze()
-  d_ = d_.squeeze()
-  t_ = t_.squeeze()
+  a_, b_, d_, t_ = a_.squeeze(), b_.squeeze(), d_.squeeze(), t_.squeeze()
 
   loss_fn = nn.MSELoss()
-
   loss = weight[0] * loss_fn(a, a_) + weight[1] * loss_fn(b, b_) + weight[2] * loss_fn(d, d_) + weight[3] * loss_fn(t, t_)
-  
   return loss
 
 def WMSE2(a_, b_, d_, a, b, d, weight, device):

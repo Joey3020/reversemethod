@@ -9,6 +9,7 @@ import os
 import pandas
 from pandas import DataFrame
 import time
+
 #train the model
 def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_SIZE, MODEL_NAME, patience, validate_every, device):
     
@@ -23,24 +24,20 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
 
     with open("model.log", "a") as f:
         for epoch in trange(EPOCHS):
+
                 net.train()
                 for batch_idx, samples in enumerate(trainloader):
                     x, y = samples
 
                     filter_input(x)
-
                     x = x.view(-1, IMG_CHANNELS, IMG_SIZE, IMG_SIZE)
-                    x = x.to(device)
-                    y = y.to(device)
 
-                    d = y[:, 2]
-                    A = y[:, 3]
-                    B = y[:, 4]
-                    t = y[:, 5]
+                    x, y = x.to(device), y.to(device)
 
-                    AA_, BB_, d_, t_ = net(x)
+                    d, A, B, t = y[:, 2], y[:, 3], y[:, 4], y[:, 5]
+                    d_, A_, B_, t_ = net(x)
                     
-                    loss = wmse4(AA_, BB_, d_, t_, A, B, d, t, 1.3, weight, device)
+                    loss = WMSE3(d_, A_, B_, t_, d, A, B, t, weight, device)
                     optimizer.zero_grad()
                     loss.backward()
                     optimizer.step()
@@ -51,19 +48,14 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                     x, y = samples
 
                     filter_input(x)
-
                     x = x.view(-1, IMG_CHANNELS, IMG_SIZE, IMG_SIZE)
-                    x = x.to(device)
-                    y = y.to(device)
 
-                    d = y[:, 2]
-                    A = y[:, 3]
-                    B = y[:, 4]
-                    t = y[:, 5]
+                    x, y = x.to(device), y.to(device)
 
-                    AA_, BB_, d_, t_ = net(x)
+                    d, A, B, t = y[:, 2], y[:, 3], y[:, 4], y[:, 5]
+                    d_, A_, B_, t_ = net(x)
                     
-                    loss = wmse4(AA_, BB_, d_, t_, A, B, d, t, 1.3, weight, device)
+                    loss = WMSE3(d_, A_, B_, t_, d, A, B, t, weight, device)
                     val_losses.append(loss.item())
 
                 train_loss = np.average(train_losses)
@@ -98,15 +90,13 @@ def test(net, testloader, IMG_CHANNELS, IMG_SIZE, OUTPUT_LABEL_SIZE, device):
             x ,y = sample
 
             filter_input(x)
-
             x = x.view(-1, IMG_CHANNELS, IMG_SIZE, IMG_SIZE)
             
-            x = x.to(device)
-            y = y.to(device)
+            x, y = x.to(device), y.to(device)
             
-            A, B, d, t = net(x)
+            d_, A_, B_, t_ = net(x)
 
-            final_result = torch.cat([A, B, d, t], dim = 1)
+            final_result = torch.cat([d_, A_, B_, t_], dim = 1)
             final_result = final_result.to("cpu")
           
             predictions.append(final_result.numpy())
