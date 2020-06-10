@@ -1,4 +1,3 @@
-
 from EarlyStopper import *
 from utils import *
 import neptune
@@ -13,7 +12,10 @@ import time
 #train the model
 def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNELS, IMG_SIZE, MODEL_NAME, patience, validate_every, device):
     
+    lmd = lambda epoch:0.97
+
     optimizer = optim.Adam(net.parameters(), LEARNING_RATE, betas=(0.9, 0.999), eps=1e-09, weight_decay=0, amsgrad=False)
+    scheduler = optim.lr_scheduler.MultiplicativeLR(optimizer, lmd)
 
     train_losses = []
     val_losses = []
@@ -76,7 +78,9 @@ def train(net, trainloader, valloader, weight, EPOCHS, LEARNING_RATE, IMG_CHANNE
                 if early_stopping.early_stop:
                     print("Early stopping")
                     break
-        
+
+                scheduler.step()
+
         net.load_state_dict(torch.load('checkpoint.pt'))
         neptune.log_artifact('checkpoint.pt')
 
